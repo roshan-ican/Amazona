@@ -2,7 +2,7 @@ import bcryptjs from "bcryptjs"
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import User from "../../../models/User"
-import db from "../../../utils/db"
+import db from "../../../utilis/db"
 
 export default NextAuth({
   session: {
@@ -27,6 +27,7 @@ export default NextAuth({
         const user = await User.findOne({
           email: credentials.email,
         })
+        console.log(user, "user")
         await db.disconnect()
         if (user && bcryptjs.compareSync(credentials.password, user.password)) {
           return {

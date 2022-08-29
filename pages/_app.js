@@ -1,23 +1,39 @@
 import "../styles/globals.css"
-import React, { useEffect } from "react"
+import React from "react"
 import { StoreProvider } from "../utilis/Store"
-import { SessionProvider } from "next-auth/react"
+import { SessionProvider, useSession } from "next-auth/react"
+import { useRouter } from "next/router"
+import { PayPalScriptProvider } from "@paypal/react-paypal-js"
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }) {
-  // useEffect(() => {
-  //   const jssStyles = document.querySelector("#jss-server-side")
-  //   if (jssStyles) {
-  //     jssStyles.parentElement.removeChild(jssStyles)
-  //   }
-  // }, [])
-
   return (
     <SessionProvider session={session}>
       <StoreProvider>
-        <Component {...pageProps} />
+        <PayPalScriptProvider deferLoading={true}>
+          {Component.auth ? (
+            <Auth>
+              <Component {...pageProps} />
+            </Auth>
+          ) : (
+            <Component {...pageProps} />
+          )}
+        </PayPalScriptProvider>
       </StoreProvider>
     </SessionProvider>
   )
+}
+function Auth({ children }) {
+  const router = useRouter()
+  const { status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.push("/unauthorized?message=login required")
+    },
+  })
+  if (status === "loading") {
+    return <div>Loading...</div>
+  }
+  return children
 }
 
 export default MyApp
